@@ -5,12 +5,14 @@ import {
   Button,
   ActivityIndicator,
   Linking,
+  Image,
 } from 'react-native';
 import React, { useEffect, useRef } from 'react';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { blackAndWhiteMapStyle } from '../map-style';
 import { useLocationPermission } from '../../hooks/useLocationPermission';
 import { useLiveLocation } from '../../hooks/useLiveLocation';
+import MapMarker from 'react-native-maps/src/MapMarker';
 
 export default function Map() {
   const { granted, requestPermission } = useLocationPermission();
@@ -74,12 +76,12 @@ export default function Map() {
         customMapStyle={blackAndWhiteMapStyle}
       >
         {location.latitude != null && location.longitude !== null && (
-          <Marker
+          <MapMarker
+            image={require('../../../assets/pee-marker.png')}
             coordinate={{
               latitude: location.latitude,
               longitude: location.longitude,
             }}
-            image={require('../../../assets/pee-marker.png')}
           />
         )}
       </MapView>
