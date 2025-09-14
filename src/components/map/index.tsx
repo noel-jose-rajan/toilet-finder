@@ -1,21 +1,26 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import React, { useEffect, useRef } from 'react';
-import MapView, { PROVIDER_GOOGLE, MapMarker, Marker } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { blackAndWhiteMapStyle } from '../map-style';
 import { useLocationPermission } from '../../hooks/useLocationPermission';
 import { useLiveLocation } from '../../hooks/useLiveLocation';
 
 export default function Map() {
   const { granted, requestPermission } = useLocationPermission();
-  const { location } = useLiveLocation(!!granted);
+  const { location, error, loading } = useLiveLocation(!!granted);
 
   const mapRef = useRef<MapView | null>(null);
 
+  // Request permission automatically on mount
   useEffect(() => {
-    if (!granted) {
-      requestPermission();
-    }
-    return () => {};
+    requestPermission();
   }, []);
 
   useEffect(() => {
@@ -27,11 +32,41 @@ export default function Map() {
         longitudeDelta: 0.005,
       });
     }
-    return () => {};
   }, [location]);
 
+  if (!granted) {
+    return (
+      <View style={styles.center}>
+        <Text>No permission granted</Text>
+        <Button
+          title="Open Settings"
+          color="black"
+          onPress={() => Linking.openSettings()}
+        />
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text>Fetching location...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text>Error: {error.message}</Text>
+        <Button title="Retry" onPress={requestPermission} />
+      </View>
+    );
+  }
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center' }}>
+    <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
@@ -51,3 +86,7 @@ export default function Map() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+});

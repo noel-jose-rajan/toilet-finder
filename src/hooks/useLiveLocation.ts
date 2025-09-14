@@ -17,13 +17,17 @@ export function useLiveLocation(permissionGranted: boolean) {
     accuracy: null,
   });
   const [error, setError] = useState<GeolocationError | null>(null);
+  const [loading, setLoading] = useState(true);
   const watchId = useRef<number | null>(null);
 
   useEffect(() => {
     if (!permissionGranted) {
       setLocation({ latitude: null, longitude: null, accuracy: null });
+      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     watchId.current = Geolocation.watchPosition(
       (pos: GeolocationResponse) => {
@@ -33,15 +37,17 @@ export function useLiveLocation(permissionGranted: boolean) {
           accuracy: pos.coords.accuracy,
         });
         setError(null);
+        setLoading(false);
       },
       (err: GeolocationError) => {
         setError(err);
+        setLoading(false);
       },
       {
         enableHighAccuracy: true,
-        distanceFilter: 0, // meters before update
-        interval: 3000, // Android only
-        fastestInterval: 2000, // Android only
+        distanceFilter: 0,
+        interval: 3000,
+        fastestInterval: 2000,
       },
     );
 
@@ -53,5 +59,5 @@ export function useLiveLocation(permissionGranted: boolean) {
     };
   }, [permissionGranted]);
 
-  return { location, error };
+  return { location, error, loading };
 }
